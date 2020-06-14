@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Button, Image, KeyboardAvoidingView, ToastAndroid } from 'react-native';
+import { View, Text, StyleSheet, Button, Image, KeyboardAvoidingView, ToastAndroid, ImageBackground } from 'react-native';
 import Constants from 'expo-constants';
 import { TextInput } from 'react-native-gesture-handler';
 import { StackActions } from '@react-navigation/native';
 import firebase from '../firebase';
+import { env } from "../config";
+import AsyncStorage from '@react-native-community/async-storage'
 
+console.disableYellowBox = true;
 
 export class LoginComponent extends Component {
     state = {
@@ -25,7 +28,7 @@ export class LoginComponent extends Component {
         })
     }
 
-    handleLogin = (navigation, email, password) => {
+    handleSubmit = (navigation, email, password) => {
         var flag = true
         firebase.auth().signInWithEmailAndPassword(email, password)
             .catch(function (error) {
@@ -36,22 +39,29 @@ export class LoginComponent extends Component {
                 ToastAndroid.show(errorMessage, ToastAndroid.SHORT)
             })
             .then(function (result) {
-                if (flag) {
-                    // navigation.navigate("Landing")
-                    navigation.dispatch(StackActions.replace('Landing'))
-                    ToastAndroid.show("Login Success!", ToastAndroid.SHORT)
-                }
+                fetch(env.server+"registerUser?email="+email, {
+                    method: "GET"
+                })
+                .then((response) => response.json())
+                .then((json) => {
+                    AsyncStorage.setItem('username', json.username);
+                    AsyncStorage.setItem('userID', json.userID).then((token) => {
+                        if (flag) {
+                            // navigation.navigate("Landing")
+                            navigation.dispatch(StackActions.replace('Landing'))
+                            ToastAndroid.show("Login Success!", ToastAndroid.SHORT)
+                        }
+                    });
+                });
             })
     }
 
     render() {
+        const keyboardVerticalOffset = Platform.OS === 'android' ? 80 : 60
         return (
-            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "position" : null}
-            style={{ flex: 1 }} >
-                <Image
-                    style={styles.splashimg}
-                    source={require("../assets/picture1.jpg")}
-                />
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "position" : null} keyboardVerticalOffset={keyboardVerticalOffset} >
+                <ImageBackground source = {require('../assets/background2.jpg')} style = {styles.bgimg} resizeMode="cover">
+                
 
                 <View style={styles.login_form_section}>
                     <TextInput style={styles.inputbtn} placeholder="EmailID" onChangeText={this.handleEmail} />
@@ -59,15 +69,16 @@ export class LoginComponent extends Component {
                     <TextInput style={styles.inputbtn} secureTextEntry={true} placeholder="Password" onChangeText={this.handlePassword} />
 
                     <View style={styles.loginbtn} >
-                        <Button title="Login" onPress={this.handleLogin.bind(this, this.props.navigation, this.state.email, this.state.password)} />
+                        <Button title="Login" onPress={this.handleSubmit.bind(this, this.props.navigation, this.state.email, this.state.password)} />
                     </View>
                     <View style={{ alignSelf: "center" }}>
-                        <Text>New User? Click Sign Up</Text>
+                        <Text style={{color:"#FFF",fontWeight:"bold",alignSelf: "center"}} >New user? Click Sign Up!</Text>
                         <View style={styles.loginbtn} >
                             <Button title="Sign Up" onPress={() => { this.props.navigation.navigate('Signup') }} />
                         </View>
                     </View>
                 </View>
+                </ImageBackground>
             </KeyboardAvoidingView>
 
 
@@ -77,26 +88,34 @@ export class LoginComponent extends Component {
 
 const styles = StyleSheet.create({
     loginbtn: {
-        borderWidth: 2,
+        
         margin: 20,
         alignSelf: "center",
-        borderRadius: 10
+        borderRadius: 10,
+        backgroundColor:'rgba(255, 255, 255, 0.9)'
     },
     inputbtn: {
         margin: 10,
-        borderWidth: 1,
+        
         padding: 15,
         borderRadius: 5,
         width: "80%",
-        alignSelf: "center"
+        alignSelf: "center",
+        backgroundColor:'rgba(255, 255, 255, 0.8)'
     },
     login_form_section: {
-        marginTop: "40%"
+        marginTop: "80%",
+        height:"100%"
     },
     splashimg: {
         width: 375,
         height: 200,
         alignSelf: "center",
         marginTop: 30
+    },
+    bgimg:{
+        height:"100%",
+        width:"100%",
+        opacity: 0.9
     }
 });

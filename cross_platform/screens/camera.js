@@ -1,7 +1,7 @@
 import { Camera } from "expo-camera";
 import React, { Component } from "react";
 import * as Permissions from "expo-permissions";
-import { Platform, Text, View, TouchableOpacity } from "react-native";
+import { Platform, Text, View, TouchableOpacity, ActivityIndicator } from "react-native";
 import {
   FontAwesome,
   Ionicons,
@@ -13,9 +13,7 @@ import { env } from "../config";
 export function Status({ show }) {
   if (show)
     return (
-      <Text style={{ color: "green", alignContent: "center", margin: 10 }}>
-        Sending .....
-      </Text>
+      <ActivityIndicator size="large" color="#ffffff" />
     );
   else {
     return <Text></Text>;
@@ -23,11 +21,23 @@ export function Status({ show }) {
 }
 
 export class CameraComponent extends Component {
-  state = {
-    hasPermission: null,
-    type: Camera.Constants.Type.back,
-    show: false,
-  };
+
+  constructor(props){
+     super(props);
+     this.state = {
+        username : this.props.route.params.username,
+        userID : this.props.route.params.userID,
+        hasPermission: null,
+        type: Camera.Constants.Type.back,
+        show: false
+     }
+  }
+
+  // state = {
+  //   hasPermission: null,
+  //   type: Camera.Constants.Type.back,
+  //   show: false,
+  // };
 
   async componentDidMount() {
     this.getPermissionAsync();
@@ -70,26 +80,35 @@ export class CameraComponent extends Component {
   //capture a picture
   takePicture = async () => {
     if (this.camera) {
-      this.setState({ show: true });
       await this.camera
         .takePictureAsync({ base64: true })
         .then((data) => {
           //sending image
-          fetch(env.server, {
+          this.setState({ show: true });
+          fetch(env.server+"recommend", {
             method: "POST",
             headers: {
               Accept: "application/json",
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              uid: "1",
+              uid: this.state.userID,
               data: data.base64,
             }),
           })
             .then((response) => response.json())
             .then((json) => {
-              this.props.navigation.navigate("Display", json);
-              return json;
+              this.setState({ show: false });
+              // if(typeof data === "undefined")
+              //   console.log("unreachable !!")
+              this.props.navigation.push('UserFeedBack', {
+                username:this.state.username, 
+                userID:this.state.userID,
+                image : data,
+                response : json
+              })
+              this.props.navigation.navigate("UserFeedBack");
+              // return json;
             })
             .catch((error) => console.log(error));
         })

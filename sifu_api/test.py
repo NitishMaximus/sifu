@@ -14,13 +14,17 @@ class TestStringMethods(unittest.TestCase):
         self.assertGreater(len(pred) , 0)
     
     def test_recipe_recommendation(self):
-        # pred = app.recommend(None,12)
+        pred = app.recommend(None,12)
         self.assertFalse(False) #tautology !
     
     def test_predict_and_recommend(self):
         img = Image.open(os.path.join(os.getcwd(),"test_image.jpg"))
         pred = app.predict(img)
         pred = app.recommend(pred,12)
+        self.assertFalse(False) #tautology !
+    
+    def recommend_without_image(self):
+        pred = app.recommend(None,12)
         self.assertFalse(False) #tautology !
     
 

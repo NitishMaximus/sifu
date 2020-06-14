@@ -3,7 +3,7 @@
 2. To test backend you can run test.py and also develop it with some unit tests if you want.
 
 ### Some basic info for backend :
-1. Request and respose are jsons
+1. Request and response are in json
 2. We respond to a request with a large json.
 3. Request comes as base64 image and user_id.
 4. We predict and recommend for the same.
@@ -17,3 +17,8 @@
 2. Recipe screen which displays a picture of dish and lists ingredients and recipes.
 3. Camera screen to take picture.
 4. Display screen to display the identified ingredients and recommended recipes.
+
+### Information on Api Updates
+1. Use get request url:5000/recommendImage?uid=userId to get automatic recommendation for a user.
+2. Use get http://localhost:5000/comment?recipe_name=${recipe_name}, for getting comments for the recipe
+3. The rest are post requests, refer to the code api to see details
